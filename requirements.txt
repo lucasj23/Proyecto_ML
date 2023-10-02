@@ -3,3 +3,4 @@ fastapi
 uvicorn[standard]
 fastparquet
 pyarrow
+scikit-learn
