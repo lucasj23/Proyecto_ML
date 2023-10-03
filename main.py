@@ -1,3 +1,5 @@
+# Importamos todas las librerías que usaremos:
+
 from fastapi import FastAPI
 import pandas as pd
 import pyarrow.parquet as pq
@@ -20,11 +22,11 @@ df_items = pq.read_table('df_items.parquet').to_pandas()
 
 app = FastAPI()
 
-# Definir rutas y funciones de ruta aquí
 
-# FUNCIONES:
+# FUNCIONES SOLICITADAS:
 
 # Primera funcion:
+
 def PlayTimeGenre(genero, df_games, df_items):
     games_filtered = df_games[df_games['genres'].str.contains(genero, case=False, na=False)]
 

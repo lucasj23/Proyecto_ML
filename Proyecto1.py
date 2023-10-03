@@ -3,21 +3,22 @@
 
 # # Proyecto Individual 1 - ML OPS
 
-# La empresa en donde estoy trabajando como Data Scientist, una una plataforma multinacional de videojuegos, me ha solicitado que me encargue de crear un sistema de recomendación de videojuegos para usuarios. La idea es crear un modelo de ML que solucione este problema de negocio. 
+# ##### Como ya fue explicado en el Readme.md, simulamos que estamos trabajando para una empresa multinacional de videojuegos en el puesto de Data Scientist, y se nos ha solicitado crear un sistema de recomendación de videojuegos para usuarios. La idea es crear un modelo de ML que solucione este problema de negocio. 
 # 
-# Dado que la madurez de los datos es nula, es necesario empezar desde 0, empezando por hacer un trabajo breve de Data Engineer y luego lograr tener un MVP (Minimum Viable Product) para el cierre del proyecto:
+# ##### Dado que la madurez de los datos es nula, es necesario empezar desde 0, empezando por hacer un trabajo breve de Data Engineer y luego lograr tener un MVP (Minimum Viable Product) para el cierre del proyecto:
 # 
-# - Transformaciones: Para este MVP no se solicitan transformaciones de datos (aunque haya motivos para hacerlo) pero se trabajará en leer el dataset con el formato correcto. Me indicaron que se puede eliminar las columnas que no se necesitan para responder las consultas o preparar los modelos de aprendizaje automático, y de esa manera optimizar el rendimiento de la API y el entrenamiento del modelo.
+# - Transformaciones: Para este MVP no es exclusivamente necesario hacer transformaciones de datos, pero se trabajará en leer el dataset con el formato correcto. Me indicaron que se puede eliminar las columnas que no se necesitan para responder las consultas o preparar los modelos de aprendizaje automático, y de esa manera optimizar el rendimiento de la API y el entrenamiento del modelo.
 # 
 # - Feature Engineering: En el dataset 'user_reviews' se incluyen reseñas de juegos hechos por distintos usuarios. Se debe crear la columna 'sentiment_analysis' aplicando análisis de sentimiento con NLP con la siguiente escala: debe tomar el valor '0' si es malo, '1' si es neutral y '2' si es positivo. Esta nueva columna debe reemplazar la de user_reviews.review para facilitar el trabajo de los modelos de machine learning y el análisis de datos. De no ser posible este análisis por estar ausente la reseña escrita, se indicó que debe tomar el valor de 1.
 # 
 # - Desarrollo API: Se propone disponibilizar los datos de la empresa usando el framework 'FastAPI'.
-
+# 
+# 
 # Empezamos, entonces, con lo primero: importar nuestros datasets otorgados (los cuales son 3), para poder ver con que nos enfrentamos y poder realizar los cambios pertinentes.
 
 # # # Importamos el primer dataset, 'Australian User Reviews' y realizamos ciertas modificaciones para que se pueda trabajar con el dataframe:
 
-# In[1]:
+# In[2]:
 
 
 # Importamos primer dataset: Australian Users Reviews
@@ -46,28 +47,28 @@ with open(file_path, 'r', encoding='utf8') as file:
 df_reviews = pd.json_normalize(data_list, record_path='reviews', meta=['user_id','user_url'])
 
 
-# In[2]:
+# In[3]:
 
 
 # Ver los primeros registros del DataFrame
 df_reviews.head()
 
 
-# In[3]:
+# In[4]:
 
 
 # verificamos la informacion rapidamente: 
 df_reviews.info()
 
 
-# In[4]:
+# In[5]:
 
 
 df_reviews = df_reviews.dropna(thresh=2)
 df_reviews.info()
 
 
-# In[5]:
+# In[6]:
 
 
 # Modificamos tipo de dato:
@@ -75,13 +76,13 @@ df_reviews.info()
 df_reviews['item_id'] = df_reviews['item_id'].astype(int)
 
 
-# In[6]:
+# In[7]:
 
 
 df_reviews.info()
 
 
-# In[7]:
+# In[8]:
 
 
 # Eliminamos las columnas que no nos serviran a los fines de nuestro análisis: 
@@ -91,7 +92,7 @@ df_reviews.drop(columns=['funny', 'last_edited', 'helpful'], inplace=True)
 
 # Procedemos a modificar el formato de la columna 'posted' para luego poder trabajar con ella:
 
-# In[8]:
+# In[9]:
 
 
 from dateutil import parser 
@@ -226,17 +227,6 @@ df_items.isnull().sum()
 df_items.info()
 
 
-# In[25]:
-
-
-# filas_con_none = df_items.isna().sum(axis=1)
-
-# Filtrar el DataFrame original para obtener filas con más de 3 'None'
-# filas_mas_de_3_none = df_items[filas_con_none > 3]
-# filas_mas_de_3_none
-# ejecutamos esto y vemos que no hay registros que tengan mas de 3 columnas con None. 
-
-
 # # Importamos tercer dataset, 'Output Steam Games' y realizamos ciertas modificaciones para que se pueda trabajar con el dataframe: 
 # 
 
@@ -256,14 +246,9 @@ df_games.head()
 # In[28]:
 
 
+# Eliminamos nulos utilizando thresh para establecer cierto umbral: 
 df_games = df_games.dropna(thresh=5)
 df_games.head()
-
-
-# In[29]:
-
-
-df_games.columns
 
 
 # In[30]:
@@ -303,14 +288,26 @@ df_games['id'] = df_games['id'].fillna(0).astype(int)
 df_games['id'] = df_games['id'].astype(int)
 
 
-# In[35]:
+# In[61]:
+
+
+# Verificamos además que encontramos en title, ciertos titulos estan en diferente formato de texto (mayúsculas y minúsculas combinadas) por lo que lo pasamos todo a minúsculas: 
+df_games["title"] = (df_games["title"]).str.lower()
+
+
+# In[62]:
 
 
 df_games.head()
 
 
-# Sobre las reseñas de juegos hechos por distintos usuarios, las cuales se encuentran en el dataset 'user_reviews', procedemos a aplicar el Análisis de sentimiento con NLP. 
-# Como fue ordenado, se debe tomar el valor '0' si el review es malo, '1' si es neutral y '2' si es positivo. En el caso de no ser posible este análisis por estar ausente la reseña escrita, debe tomar el valor de 1.
+# #### Sobre las reseñas de juegos hechos por distintos usuarios, las cuales se encuentran en el dataset 'user_reviews', procedemos a aplicar el Análisis de sentimiento con NLP. Como fue ordenado, se debe tomar el valor '0' si el review es malo, '1' si es neutral y '2' si es positivo. En el caso de no ser posible este análisis por estar ausente la reseña escrita, debe tomar el valor de 1.
+
+# In[63]:
+
+
+#### AAA
+
 
 # In[36]:
 
@@ -363,9 +360,9 @@ print(f"Total puntuadas: {count_0 + count_1 + count_2}")
 
 # # Exportamos los dataframes ya modificados (es decir listos para poder trabajar nuestras funciones) a formato CSV y PARQUET y los volvemos a leer, para trabajar de forma mas prolija: 
 
-# Cabe aclarar que exportamos dos dataframes a formato CSV y uno de ellos a formato PARQUET por una cuestion de tamaño. El tamaño del dataframe exportado a PARQUET era más grande que los demas, imposibilitando su trabajo en formato CSV y por eso se elije formato PARQUET. 
+# #### Cabe aclarar que exportamos dos dataframes a formato CSV y uno de ellos a formato PARQUET por una cuestion de tamaño. El tamaño del dataframe exportado a PARQUET era más grande que los demas, imposibilitando su trabajo en formato CSV y por eso se elije formato PARQUET. 
 # 
-# Les asignamos el mismo nombre que antes para no confundirnos.
+# #### Les asignamos el mismo nombre que antes para no confundirnos.
 
 # In[39]:
 
@@ -391,10 +388,10 @@ df_csv2 = pd.read_csv('df_games.csv')
 df_parquet = pq.read_table('df_items.parquet').to_pandas()
 
 
-# # Funcion Nro. 1:
-# def PlayTimeGenre( genero : str ): Debe devolver año con mas horas jugadas para dicho género.
+# ## Funcion Nro. 1:
+# #### def PlayTimeGenre( genero : str ): Debe devolver año con mas horas jugadas para dicho género.
 
-# In[41]:
+# In[64]:
 
 
 # Primero definimos una función para convertir un objeto en una cadena de texto:
@@ -411,14 +408,14 @@ def ensure_string2(obj):
     return str(obj)
 
 
-# In[42]:
+# In[65]:
 
 
-# aplicamos la funcion:
+# Aplicamos la funcion:
 df_games['genres'] = df_games['genres'].apply(ensure_string2)
 
 
-# In[43]:
+# In[66]:
 
 
 # Ahora si redactamos la funcion solicitada: 
@@ -437,15 +434,15 @@ def PlayTimeGenre(genero, df_games, df_items):
     return f"Año con más horas jugadas para Género {genero}: {int(max_year)}"
 
 
-# In[44]:
+# In[67]:
 
 
 resultado = PlayTimeGenre('Adventure', df_csv2, df_parquet)
 print(resultado)
 
 
-# # Función Nro. 2: 
-#  def UserForGenre( genero : str ): Debe devolver el usuario que acumula más horas jugadas para el género dado y una lista de la acumulación de horas jugadas por año.
+# ## Función Nro. 2: 
+# #### def UserForGenre( genero : str ): Debe devolver el usuario que acumula más horas jugadas para el género dado y una lista de la acumulación de horas jugadas por año.
 
 # In[45]:
 
@@ -496,8 +493,8 @@ resultado2 = UserForGenre('Sports', df_csv2, df_parquet)
 print(resultado2)
 
 
-# # Funcion Nro. 3: 
-# "def UsersRecommend( año : int )": Devuelve el top 3 de juegos MÁS recomendados por usuarios para el año dado. (reviews.recommend = True y comentarios positivos/neutrales)
+# ## Funcion Nro. 3: 
+# #### "def UsersRecommend( año : int )": Devuelve el top 3 de juegos MÁS recomendados por usuarios para el año dado. (reviews.recommend = True y comentarios positivos/neutrales)
 
 # Para poder realizar la funcion, acorde a lo solicitado, previamente tenemos que realizar un merge fuera de la función y guarda el resultado en un DataFrame: 
 # 
@@ -521,13 +518,13 @@ merged_df2 = merged_df2[['posted', 'title', 'sentiment_analysis', 'recommend', '
 merged_df2.to_csv('merged_df2.csv')
 
 
-# In[69]:
+# In[50]:
 
 
 merged_df2.head()
 
 
-# In[71]:
+# In[51]:
 
 
 # Ahora procedemos a desarrollar la funcion: 
@@ -550,7 +547,7 @@ def UsersRecommend(year: int):
     return result
 
 
-# In[72]:
+# In[52]:
 
 
 # Realizamos la verificacion de que funcione: 
@@ -559,10 +556,10 @@ resultado3 = UsersRecommend(2012)
 print(resultado3)
 
 
-# # Funcion Nro. 4: 
-# "def UsersNotRecommend( año : int )": Devuelve el top 3 de juegos MENOS recomendados por usuarios para el año dado. (reviews.recommend = False y comentarios negativos)
+# ## Funcion Nro. 4: 
+# #### "def UsersNotRecommend( año : int )": Devuelve el top 3 de juegos MENOS recomendados por usuarios para el año dado. (reviews.recommend = False y comentarios negativos)
 
-# In[54]:
+# In[53]:
 
 
 # Cuarta Funcion:
@@ -586,7 +583,7 @@ def UsersNotRecommend(year):
 
 
 
-# In[56]:
+# In[54]:
 
 
 # Realizamos la verificacion de que funcione: 
@@ -595,7 +592,7 @@ resultado4 = UsersNotRecommend(2011)
 print(resultado4)
 
 
-# In[57]:
+# In[55]:
 
 
 # Aca, por otro lado, y para verificar completamente la funcion, verificamos si realmente lo que nos está devolviendo coincide con los criterios de sentiment analysis que
@@ -617,10 +614,10 @@ def VerificarReseñas(año: int):
 VerificarReseñas(2011)  # Cambia el año según tus datos
 
 
-# # Funcion Nro. 5: 
-# 'def sentiment_analysis( año : int )': Según el año de lanzamiento, se devuelve una lista con la cantidad de registros de reseñas de usuarios que se encuentren categorizados con un análisis de sentimiento.
+# ## Funcion Nro. 5: 
+# #### 'def sentiment_analysis( año : int )': Según el año de lanzamiento, se devuelve una lista con la cantidad de registros de reseñas de usuarios que se encuentren categorizados con un análisis de sentimiento.
 
-# In[61]:
+# In[56]:
 
 
 def SentimentAnalysis(year: int):
@@ -645,16 +642,10 @@ def SentimentAnalysis(year: int):
 
 
 
-# In[62]:
+# In[57]:
 
 
 # Ejemplo de uso
 resultado5 = SentimentAnalysis(2013)  # Cambia el año según tus datos
 print(resultado5)
-
-
-# In[ ]:
-
-
-
 

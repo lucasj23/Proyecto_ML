@@ -3,9 +3,11 @@
 
 # # Primero, comenzamos importando nuestros dataframes, ya modificados anteriormente, para poder comenzar a realizar nuestro Analisis Exploratorio de los Datos:
 
-# Realizamos la importancion de las librerias que vamos a utilizar para el EDA (Exploratory Data Analysis) y también lo que vamos a necesitar a posteriorir para desarrollar el modelo de recomendacion.
+# ### Realizamos la importación de las librerias que vamos a utilizar para el EDA (Exploratory Data Analysis) y también lo que vamos a necesitar a posteriorir para desarrollar el modelo de recomendacion.
+# 
+# ### Cabe aclarar que previamente a esta etapa ya se realizaron ciertas funciones de ETL, ya que de lo contrario hubiera sido imposible trabajar con los datos tal como nos fueron entregados.
 
-# In[106]:
+# In[1]:
 
 
 import pandas as pd
@@ -55,7 +57,7 @@ merged_df2 = merged_df2.dropna()
 merged_df2.info()
 
 
-# In[40]:
+# In[6]:
 
 
 df_items.info()
@@ -87,16 +89,36 @@ df_games = df_games.dropna()
 df_games.info()
 
 
-# In[11]:
+# In[32]:
 
 
 df_games.head()
 
 
-# Una vez verificado esto, continuamos con nuestro Análisis Exploratorio de datos.
+# In[37]:
+
+
+df_games.head()
+
+
+# Anteriormente ya habiamos encontrado ciertos titulos en 'title'que estaban en diferente formato de texto (mayúsculas y minúsculas combinadas) por lo que lo pasamos todo a minúsculas, ahora lo verificamos nuevamente:
+
+# In[38]:
+
+
+df_games["title"] = (df_games["title"]).str.lower()
+
+
+# In[40]:
+
+
+df_games.head()
+
+
+# ## Una vez verificado esto, continuamos con nuestro Análisis Exploratorio de datos.
 # Comenzamos con el dataframe 'df_games': 
 
-# In[30]:
+# In[12]:
 
 
 # Queremos hacer un histograma de precios, pero como verificamos, la columna price no está en formato numerico y tiene valores que no son numeros,
@@ -105,7 +127,7 @@ df_games.head()
 df_games.head()
 
 
-# In[16]:
+# In[13]:
 
 
 df_games['price'] = pd.to_numeric(df_games['price'], errors='coerce').fillna(0)
@@ -113,7 +135,7 @@ df_games['price'] = pd.to_numeric(df_games['price'], errors='coerce').fillna(0)
 # Con esto modificamos los juegos que son gratis ('free to play) o simplemente estan bonificados, pasando esos registros a valor 0 y quedandonos con los que realmente tienen precio.
 
 
-# In[28]:
+# In[14]:
 
 
 # # Aplicamos una transformación logarítmica a la columna 'price' antes de crear el histograma para obtener una mejor visualización de la distribución.
@@ -132,7 +154,7 @@ plt.show()
 
 # Verificamos que la mayoria de los precios estan entre $0.00 (juegos que son gratis, estan bonificados, etc) y $4.00. 
 
-# In[36]:
+# In[15]:
 
 
 # Procedemos a verificar la cantidad de generos y cuales son los mas repetidos: 
@@ -159,7 +181,7 @@ plt.show()
 
 # Pasamos a analizar el dataframe 'df_items' : 
 
-# In[45]:
+# In[28]:
 
 
 # Al tener muchos juegos que con valor de 0 tiempo jugado, filtramos los juegos con tiempo de juego mayor que 0, que es lo que realmente nos interesa:
@@ -177,7 +199,7 @@ plt.ylabel('Frecuencia')
 plt.show()
 
 
-# In[52]:
+# In[17]:
 
 
 # Ahora realizamos un box plot (grafico de caja). Este código de abajo utiliza los datos filtrados en df_items_filtered que excluyen los juegos con tiempo de juego igual a 0 y 
@@ -214,7 +236,7 @@ plt.show()
 # 
 # 
 
-# In[61]:
+# In[18]:
 
 
 # Ahora, realizamos un gráfico de barras con la columna item_name (nombre de elementos), para verificar los juegos que mas aparecen en el dataframe:
@@ -231,13 +253,13 @@ plt.show()
 
 # Pasamos a analizar el dataframe 'df_reviews' : 
 
-# In[62]:
+# In[19]:
 
 
 df_reviews.head()
 
 
-# In[63]:
+# In[20]:
 
 
 # Creamos un DataFrame parcial que cuente la proporción de recomendaciones positivas y negativas
@@ -252,7 +274,7 @@ plt.ylabel('Proporción')
 plt.show()
 
 
-# In[82]:
+# In[21]:
 
 
 # Podemos tambien visualizarlo mas facilmente con un grafico de torta de Recomendaciones (pie plot):
@@ -264,7 +286,7 @@ plt.title('Proporción de Recomendaciones respecto al total de Reviews de los Ju
 plt.show()
 
 
-# In[65]:
+# In[22]:
 
 
 # También realizamos un Histograma de Análisis de Sentimiento (sentiment_analysis):
@@ -286,22 +308,16 @@ plt.show()
 
 
 
-# In[86]:
+# In[23]:
 
 
 df_games.head()
 
 
-# In[167]:
+# In[24]:
 
 
 df_reviews.tail(20)
-
-
-# In[ ]:
-
-
-
 
 
 # # Una vez realizado nuestro Analisis Exploratorio y según las conclusiones obtenidas, realizamos nuestro modelo de recomendaciones de juegos: 
@@ -310,7 +326,17 @@ df_reviews.tail(20)
 # Esto significa que le pasamos el item de un juego al modelo y, en base a que tan similar esa ese ítem al resto, el modelo nos recomienda juegos similares. 
 # El input es un juego (su id) y el output es una lista de 5 juegos recomendados. Para ello, aplicamos como base la similitud del coseno.
 
-# In[227]:
+# ### Explicamos la función utilizada: 
+# 
+# La función utilizada, 'linear_kernel', que se utiliza para calcular el producto escalar entre dos matrices, en este caso se utiliza para calcular la similitud del coseno. Aunque su nombre es "linear_kernel", en realidad se utiliza para calcular la similitud del coseno cuando se aplica a matrices TF-IDF.
+# 
+# Entonces, en este contexto, la función linear_kernel se utiliza para calcular la similitud del coseno entre las características del juego de referencia y todos los demás juegos en la matriz TF-IDF. El resultado es una matriz de similitud que indica cuán similares son los juegos entre sí en función de sus características (etiquetas y géneros). Luego, esta matriz se utiliza para identificar y recomendar juegos similares al juego de referencia.
+# 
+# TF-IDF significa "Term Frequency-Inverse Document Frequency", que se traduce como "Frecuencia de Término-Frecuencia Inversa de Documento". Estas matrices se utilizan para medir la importancia relativa de las palabras en un conjunto de documentos o textos.
+# 
+# En resumen, aunque se llama "linear_kernel", en este caso se utiliza para calcular la similitud del coseno entre las características de los juegos en lugar de realizar una operación de kernel lineal en el sentido tradicional. La función linear_kernel es una forma eficiente de calcular la similitud del coseno en scikit-learn.
+
+# In[41]:
 
 
 def recomendacion_juego3(item_id):
@@ -348,7 +374,7 @@ def recomendacion_juego3(item_id):
     return recommended_game_names
 
 
-# In[229]:
+# In[42]:
 
 
 # Utilizamos un ID aleatorio para probar que el modelo funcione:
@@ -357,4 +383,4 @@ recommended_games = recomendacion_juego3(product_id)
 print(recommended_games)
 
 
-# Efectivamente, verificamos que el sistema funciona. Le pasamos un juego y nos devuelve juegos similares.
+# Efectivamente, verificamos que el sistema funciona. Le pasamos un juego y nos devuelve juegos similares, lo que a simple vista parece razonable porque tienen generos parecidos e incluso comparten palabras del nombre.
