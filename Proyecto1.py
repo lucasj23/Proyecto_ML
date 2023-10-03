@@ -11,9 +11,11 @@
 # 
 # - Feature Engineering: En el dataset 'user_reviews' se incluyen reseñas de juegos hechos por distintos usuarios. Se debe crear la columna 'sentiment_analysis' aplicando análisis de sentimiento con NLP con la siguiente escala: debe tomar el valor '0' si es malo, '1' si es neutral y '2' si es positivo. Esta nueva columna debe reemplazar la de user_reviews.review para facilitar el trabajo de los modelos de machine learning y el análisis de datos. De no ser posible este análisis por estar ausente la reseña escrita, se indicó que debe tomar el valor de 1.
 # 
-# Desarrollo API: Se propone disponibilizar los datos de la empresa usando el framework 'FastAPI'.
+# - Desarrollo API: Se propone disponibilizar los datos de la empresa usando el framework 'FastAPI'.
 
-# Empezamos, entonces, con lo primero: importar nuestros datasets otorgados (los cuales son 3), para poder ver con que nos enfrentamos.
+# Empezamos, entonces, con lo primero: importar nuestros datasets otorgados (los cuales son 3), para poder ver con que nos enfrentamos y poder realizar los cambios pertinentes.
+
+# # # Importamos el primer dataset, 'Australian User Reviews' y realizamos ciertas modificaciones para que se pueda trabajar con el dataframe:
 
 # In[1]:
 
@@ -68,6 +70,8 @@ df_reviews.info()
 # In[5]:
 
 
+# Modificamos tipo de dato:
+
 df_reviews['item_id'] = df_reviews['item_id'].astype(int)
 
 
@@ -85,10 +89,10 @@ df_reviews.info()
 df_reviews.drop(columns=['funny', 'last_edited', 'helpful'], inplace=True)
 
 
+# Procedemos a modificar el formato de la columna 'posted' para luego poder trabajar con ella:
+
 # In[8]:
 
-
-# Procedemos a modificar el formato de la columna 'posted' para luego poder trabajar con ella:
 
 from dateutil import parser 
 
@@ -106,12 +110,6 @@ df_reviews['posted'] = df_reviews['posted'].apply(parse_date)
 df_reviews = df_reviews.dropna(subset=['posted'])
 
 
-# In[9]:
-
-
-df_reviews.info()
-
-
 # In[10]:
 
 
@@ -124,7 +122,7 @@ df_reviews['posted'] = pd.to_datetime(df_reviews['posted'])
 df_reviews.info()
 
 
-# # Importamos segundo dataset, Australian User Items
+# # Importamos el segundo dataset, 'Australian User Items' y realizamos ciertas modificaciones para que se pueda trabajar con el dataframe:
 # 
 
 # In[12]:
@@ -177,19 +175,58 @@ df_items['item_id'] = df_items['item_id'].astype('int32')
 df_items = df_items.drop_duplicates()
 
 
-# In[51]:
+# In[17]:
 
 
 df_items.info()
 
 
-# In[52]:
+# In[18]:
 
 
 df_items.isnull().sum()
 
 
 # In[19]:
+
+
+columnas_a_convertir = ['user_id', 'item_id', 'playtime_forever']
+# Iterar a través de las columnas y convertirlas a int, manejando los errores
+for columna in columnas_a_convertir:
+    df_items[columna] = pd.to_numeric(df_items[columna], errors='coerce')
+
+
+# In[20]:
+
+
+df_items.info()
+
+
+# In[21]:
+
+
+df_items.isnull().sum()
+
+
+# In[22]:
+
+
+df_items = df_items.dropna()
+
+
+# In[23]:
+
+
+df_items.isnull().sum()
+
+
+# In[24]:
+
+
+df_items.info()
+
+
+# In[25]:
 
 
 # filas_con_none = df_items.isna().sum(axis=1)
@@ -200,36 +237,36 @@ df_items.isnull().sum()
 # ejecutamos esto y vemos que no hay registros que tengan mas de 3 columnas con None. 
 
 
-# # Importamos tercer dataset, Output Steam Games
+# # Importamos tercer dataset, 'Output Steam Games' y realizamos ciertas modificaciones para que se pueda trabajar con el dataframe: 
 # 
 
-# In[20]:
+# In[26]:
 
 
 df_games = pd.read_json('output_steam_games.json', lines=True)
 
 
-# In[21]:
+# In[27]:
 
 
 # Ver los primeros registros del DataFrame
 df_games.head()
 
 
-# In[22]:
+# In[28]:
 
 
 df_games = df_games.dropna(thresh=5)
 df_games.head()
 
 
-# In[23]:
+# In[29]:
 
 
 df_games.columns
 
 
-# In[24]:
+# In[30]:
 
 
 # Borramos las columnas que no nos servirán a los fines de nuestor análisis: 
@@ -237,35 +274,36 @@ df_games.columns
 df_games.drop(columns=['reviews_url', 'specs', 'early_access','app_name','publisher'], inplace=True) 
 
 
-# In[25]:
+# In[31]:
 
 
 df_games.info()
 
 
-# In[26]:
+# In[32]:
 
 
-# Procedemos a modificar el formato de las fechas de la columna 'release date' para luego poder trabajar con ella:
+# Procedemos a modificar el formato de ciertas columnas:
+# En primer lugar, las fechas de la columna 'release date' para luego poder trabajar con ella:
 
 df_games['release_date'] = pd.to_datetime(df_games['release_date'], format='%Y-%m-%d', errors='coerce')
 
 
-# In[27]:
+# In[33]:
 
 
 # Convertimos en 0 los registros que no tengan ID: 
 df_games['id'] = df_games['id'].fillna(0).astype(int)
 
 
-# In[28]:
+# In[34]:
 
 
 # Ahora convertimos todos los ID en enteros, para poder trabajar mejor: 
 df_games['id'] = df_games['id'].astype(int)
 
 
-# In[29]:
+# In[35]:
 
 
 df_games.head()
@@ -274,7 +312,7 @@ df_games.head()
 # Sobre las reseñas de juegos hechos por distintos usuarios, las cuales se encuentran en el dataset 'user_reviews', procedemos a aplicar el Análisis de sentimiento con NLP. 
 # Como fue ordenado, se debe tomar el valor '0' si el review es malo, '1' si es neutral y '2' si es positivo. En el caso de no ser posible este análisis por estar ausente la reseña escrita, debe tomar el valor de 1.
 
-# In[30]:
+# In[36]:
 
 
 from textblob import TextBlob
@@ -302,13 +340,13 @@ df_reviews['sentiment_analysis'] = df_reviews['review'].apply(analyze_sentiment)
 print(df_reviews)
 
 
-# In[31]:
+# In[37]:
 
 
 df_reviews.info()
 
 
-# In[32]:
+# In[38]:
 
 
 # Verificamos que hayan sido puntuadas todas las filas: 
@@ -323,9 +361,13 @@ print(f"Número de filas con valor 2: {count_2}")
 print(f"Total puntuadas: {count_0 + count_1 + count_2}")
 
 
-# EXPORTAMOS A CSV y PARQUET y los volvemos a leer, para trabajar de forma mas prolija: 
+# # Exportamos los dataframes ya modificados (es decir listos para poder trabajar nuestras funciones) a formato CSV y PARQUET y los volvemos a leer, para trabajar de forma mas prolija: 
 
-# In[33]:
+# Cabe aclarar que exportamos dos dataframes a formato CSV y uno de ellos a formato PARQUET por una cuestion de tamaño. El tamaño del dataframe exportado a PARQUET era más grande que los demas, imposibilitando su trabajo en formato CSV y por eso se elije formato PARQUET. 
+# 
+# Les asignamos el mismo nombre que antes para no confundirnos.
+
+# In[39]:
 
 
 # Exportar df_reviews a un archivo CSV
@@ -338,7 +380,7 @@ df_games.to_csv('df_games.csv', index=False)
 df_items.to_parquet('df_items.parquet', index=False)  # El parámetro index=False evita que se incluya el índice en el archivo Parquet
 
 
-# In[34]:
+# In[40]:
 
 
 # Leemos los archivos: 
@@ -349,9 +391,10 @@ df_csv2 = pd.read_csv('df_games.csv')
 df_parquet = pq.read_table('df_items.parquet').to_pandas()
 
 
-# PRIMERA FUNCION: def PlayTimeGenre( genero : str ): Debe devolver año con mas horas jugadas para dicho género.
+# # Funcion Nro. 1:
+# def PlayTimeGenre( genero : str ): Debe devolver año con mas horas jugadas para dicho género.
 
-# In[35]:
+# In[41]:
 
 
 # Primero definimos una función para convertir un objeto en una cadena de texto:
@@ -368,14 +411,14 @@ def ensure_string2(obj):
     return str(obj)
 
 
-# In[36]:
+# In[42]:
 
 
 # aplicamos la funcion:
 df_games['genres'] = df_games['genres'].apply(ensure_string2)
 
 
-# In[37]:
+# In[43]:
 
 
 # Ahora si redactamos la funcion solicitada: 
@@ -394,16 +437,17 @@ def PlayTimeGenre(genero, df_games, df_items):
     return f"Año con más horas jugadas para Género {genero}: {int(max_year)}"
 
 
-# In[38]:
+# In[44]:
 
 
 resultado = PlayTimeGenre('Adventure', df_csv2, df_parquet)
 print(resultado)
 
 
-# SEGUNDA FUNCION: def UserForGenre( genero : str ): Debe devolver el usuario que acumula más horas jugadas para el género dado y una lista de la acumulación de horas jugadas por año.
+# # Función Nro. 2: 
+#  def UserForGenre( genero : str ): Debe devolver el usuario que acumula más horas jugadas para el género dado y una lista de la acumulación de horas jugadas por año.
 
-# In[39]:
+# In[45]:
 
 
 def UserForGenre(genero, df_games, df_items):
@@ -445,38 +489,48 @@ def UserForGenre(genero, df_games, df_items):
 
 
 
-# In[40]:
+# In[46]:
 
 
 resultado2 = UserForGenre('Sports', df_csv2, df_parquet)
 print(resultado2)
 
 
-# TERCERA FUNCION: def UsersRecommend( año : int ): Devuelve el top 3 de juegos MÁS recomendados por usuarios para el año dado. (reviews.recommend = True y comentarios positivos/neutrales)
+# # Funcion Nro. 3: 
+# "def UsersRecommend( año : int )": Devuelve el top 3 de juegos MÁS recomendados por usuarios para el año dado. (reviews.recommend = True y comentarios positivos/neutrales)
 
-# In[97]:
+# Para poder realizar la funcion, acorde a lo solicitado, previamente tenemos que realizar un merge fuera de la función y guarda el resultado en un DataFrame: 
+# 
+
+# In[47]:
 
 
-# Realiza el merge fuera de la función y guarda el resultado en un DataFrame
 merged_df2 = pd.merge(df_reviews, df_games, left_on='item_id', right_on='id', how='inner')
 merged_df2.head()
 
 
-# In[101]:
+# In[48]:
+
+
+merged_df2 = merged_df2[['posted', 'title', 'sentiment_analysis', 'recommend', 'release_date']]
+
+
+# In[49]:
 
 
 merged_df2.to_csv('merged_df2.csv')
 
 
-# In[121]:
+# In[69]:
 
 
-merged_df2.info()
+merged_df2.head()
 
 
-# In[102]:
+# In[71]:
 
 
+# Ahora procedemos a desarrollar la funcion: 
 def UsersRecommend(year: int):
     # Asegúrate de que 'posted' sea de tipo datetime
     merged_df2['posted'] = pd.to_datetime(merged_df2['posted'])
@@ -496,46 +550,19 @@ def UsersRecommend(year: int):
     return result
 
 
-# In[41]:
+# In[72]:
 
 
-''' FUNCION MIA VIEJA: 
-
-def UsersRecommend(año, df_games, df_reviews):
-    df_reviews['posted'] = pd.to_datetime(df_reviews['posted'])
-    
-    # Filtra las reseñas para el año dado y que tengan recomendación (recommend = True) y comentarios positivos/neutrales (sentiment_analysis >= 0)
-    reviews_filtered = df_reviews[(df_reviews['posted'].dt.year == año) &
-                                  (df_reviews['recommend'] == True) & (df_reviews['sentiment_analysis'] >= 0)]
-
-    # Agrupa las reseñas por item_id y cuenta cuántas veces cada juego ha sido recomendado
-    game_recommendations = reviews_filtered.groupby('item_id')['recommend'].sum().reset_index()
-
-    # Fusiona game_recommendations con df_games para obtener información sobre los juegos
-    top_games = pd.merge(game_recommendations, df_games, left_on='item_id', right_on='id', how='inner')
-
-    # Ordena los juegos por la cantidad de recomendaciones en orden descendente
-    top_games = top_games.sort_values(by='recommend', ascending=False)
-
-    # Selecciona los primeros 3 juegos recomendados y crea la lista de retorno
-    top_3_games = top_games.head(3)
-
-    # Crea una lista de diccionarios con el formato correcto
-    top_3_list = [{"Puesto {}: {}".format(i, juego['title'])} for i, juego in enumerate(top_3_games[['title', 'recommend']].to_dict(orient='records'), start=1)]
-
-    return top_3_list'''
-
-
-# In[103]:
-
+# Realizamos la verificacion de que funcione: 
 
 resultado3 = UsersRecommend(2012)
 print(resultado3)
 
 
-# Ejemplo de retorno: [{"Puesto 1" : X}, {"Puesto 2" : Y},{"Puesto 3" : Z}]
+# # Funcion Nro. 4: 
+# "def UsersNotRecommend( año : int )": Devuelve el top 3 de juegos MENOS recomendados por usuarios para el año dado. (reviews.recommend = False y comentarios negativos)
 
-# In[127]:
+# In[54]:
 
 
 # Cuarta Funcion:
@@ -559,50 +586,20 @@ def UsersNotRecommend(year):
 
 
 
-# In[68]:
+# In[56]:
 
 
-# Funcion Lucas vieja: 
-'''
- def UsersNotRecommend(año: int, df_games, df_reviews):
-    df_reviews = df_reviews.copy()  # Crear una copia del DataFrame para evitar modificaciones globales
-    df_reviews['posted'] = pd.to_datetime(df_reviews['posted'])
-    
-    # Filtra las reseñas para el año dado y que tengan no recomendación (recommend = False) y comentarios negativos (sentiment_analysis == 0)
-    reviews_filtered = df_reviews[(df_reviews['posted'].dt.year == año) &
-                                  (df_reviews['recommend'] == False) & (df_reviews['sentiment_analysis'] == 0)]
-
-    # Agrupa las reseñas por item_id y cuenta cuántas veces cada juego ha sido no recomendado
-    game_not_recommendations = reviews_filtered.groupby('item_id')['recommend'].sum().reset_index()
-
-    # Fusiona game_not_recommendations con df_games para obtener información sobre los juegos
-    top_not_recommend_games = pd.merge(game_not_recommendations, df_games, left_on='item_id', right_on='id', how='inner')
-
-    # Ordena los juegos por la cantidad de no recomendaciones en orden descendente
-    top_not_recommend_games = top_not_recommend_games.sort_values(by='recommend', ascending=False)
-
-    # Selecciona los primeros 3 juegos menos recomendados y crea la lista de retorno
-    top_3_not_recommend_games = top_not_recommend_games.head(3)
-
-    # Crea una lista de diccionarios con el formato correcto (sin el valor de recomendación)
-    top_3_not_recommend_list = [{"Puesto {}: {}".format(i, juego['title'])} for i, juego in enumerate(top_3_not_recommend_games[['title']].to_dict(orient='records'), start=1)]
-
-    return top_3_not_recommend_list 
-    '''
-
-
-
-
-# In[128]:
-
+# Realizamos la verificacion de que funcione: 
 
 resultado4 = UsersNotRecommend(2011)
 print(resultado4)
 
 
-# In[130]:
+# In[57]:
 
 
+# Aca, por otro lado, y para verificar completamente la funcion, verificamos si realmente lo que nos está devolviendo coincide con los criterios de sentiment analysis que
+# realizamos previamente, y que justamente es en lo que se basa la funcion anterior: 
 def VerificarReseñas(año: int):
     global df_reviews
     df_reviews['posted'] = pd.to_datetime(df_reviews['posted'])
@@ -620,27 +617,10 @@ def VerificarReseñas(año: int):
 VerificarReseñas(2011)  # Cambia el año según tus datos
 
 
-# In[46]:
+# # Funcion Nro. 5: 
+# 'def sentiment_analysis( año : int )': Según el año de lanzamiento, se devuelve una lista con la cantidad de registros de reseñas de usuarios que se encuentren categorizados con un análisis de sentimiento.
 
-
-df_reviews.head()
-
-
-# In[47]:
-
-
-(df_reviews['recommend'] == False).sum()
-
-
-# In[48]:
-
-
-(df_reviews['sentiment_analysis'] == 0).sum()
-
-
-# FUNCION 5: def sentiment_analysis( año : int ): Según el año de lanzamiento, se devuelve una lista con la cantidad de registros de reseñas de usuarios que se encuentren categorizados con un análisis de sentimiento.
-
-# In[135]:
+# In[61]:
 
 
 def SentimentAnalysis(year: int):
@@ -665,7 +645,7 @@ def SentimentAnalysis(year: int):
 
 
 
-# In[136]:
+# In[62]:
 
 
 # Ejemplo de uso

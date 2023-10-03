@@ -182,7 +182,7 @@ async def read_sentiment_analysis(year: int):
 
 def recomendacion_juego3(item_id):
     # Número de recomendaciones (ajustable según lo que se prefiera)
-    num_recommendations = 5
+    num_recommendations = 6
 
     # Obtén los tags y géneros del juego de referencia
     reference_game = df_games[df_games['id'] == item_id]
@@ -208,8 +208,8 @@ def recomendacion_juego3(item_id):
     # Obtener los índices de los juegos más similares
     similar_game_indices = cosine_similarities.argsort(axis=0)[:-num_recommendations-1:-1]
 
-    # Obtener los nombres de los juegos recomendados
-    recommended_game_names = df_games.iloc[similar_game_indices.flatten()]['title'].tolist()
+    # Obtener los nombres de los juegos recomendados a partir de la segunda recomendación
+    recommended_game_names = df_games.iloc[similar_game_indices.flatten()][1:num_recommendations + 1]['title'].tolist()
 
     return recommended_game_names
 
