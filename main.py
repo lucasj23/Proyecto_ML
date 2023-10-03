@@ -5,6 +5,9 @@ from typing import List
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.neighbors import NearestNeighbors
+from sklearn.metrics.pairwise import linear_kernel
+
 
 
 # Cargar los DataFrames desde archivos CSV
@@ -174,50 +177,43 @@ async def read_sentiment_analysis(year: int):
     return {"resultado": resultado}
 
 
-# MODELO ML: Función para recomendar juegos similares
+# MODELO de Recomendacion - Machine Learning: Función para recomendar juegos similares
 
-def recomendacion_juego(product_id):
-    # Especifica el tamaño de la muestra
-    tamano_muestra = 1000
-    
-    # Toma una muestra aleatoria del DataFrame original
-    muestra_aleatoria = df_games.sample(n=tamano_muestra, random_state=42)
-    
-    # Reemplaza con el product_id proporcionado por el usuario
-    target_game = muestra_aleatoria.copy()
-    target_game['id'] = product_id
 
-    # Combina las etiquetas (tags) y géneros en una sola cadena de texto
-    target_game_tags_and_genres = ' '.join(target_game['tags'].fillna('').astype(str) + ' ' + target_game['genres'].fillna('').astype(str))
+def recomendacion_juego3(item_id):
+    # Número de recomendaciones (ajustable según lo que se prefiera)
+    num_recommendations = 5
 
-    # Crea una lista que contenga el juego de referencia y todos los juegos en la muestra
-    all_games = [target_game_tags_and_genres] + muestra_aleatoria['tags'].astype(str) + ' ' + muestra_aleatoria['genres'].astype(str)
+    # Obtén los tags y géneros del juego de referencia
+    reference_game = df_games[df_games['id'] == item_id]
+    reference_tags = reference_game['tags'].values[0]
+    reference_genres = reference_game['genres'].values[0]
 
-    # Crea un vectorizador TF-IDF
+    # Combinar los tags y géneros en una sola cadena de texto
+    reference_features = ' '.join([reference_tags, reference_genres])
+
+    # Rellenar valores NaN en las columnas 'tags' y 'genres' con cadenas vacías
+    df_games['tags'] = df_games['tags'].fillna('')
+    df_games['genres'] = df_games['genres'].fillna('')
+
+    # Crear un vectorizador TF-IDF
     tfidf_vectorizer = TfidfVectorizer()
 
-    # Aplica el vectorizador a la lista de juegos
-    tfidf_matrix = tfidf_vectorizer.fit_transform(all_games)
+    # Aplicar el vectorizador a todas las características de los juegos
+    tfidf_matrix = tfidf_vectorizer.fit_transform(df_games['tags'] + ' ' + df_games['genres'])
 
-    # Calcular la similitud entre el juego de referencia y todos los demás juegos
-    similarity_matrix = cosine_similarity(tfidf_matrix)
+    # Calcular la similitud de coseno entre las características del juego de referencia y los otros juegos
+    cosine_similarities = linear_kernel(tfidf_matrix, tfidf_vectorizer.transform([reference_features]))
 
-    # Ordenar los juegos por similitud y obtener los índices de los juegos más similares
-    similar_games_indices = similarity_matrix[0].argsort()[::-1]
+    # Obtener los índices de los juegos más similares
+    similar_game_indices = cosine_similarities.argsort(axis=0)[:-num_recommendations-1:-1]
 
-    # Recomendar los juegos más similares (puedes ajustar el número de recomendaciones)
-    num_recommendations = 5
-    recommended_games = muestra_aleatoria.iloc[similar_games_indices[1:num_recommendations + 1]]
+    # Obtener los nombres de los juegos recomendados
+    recommended_game_names = df_games.iloc[similar_game_indices.flatten()]['title'].tolist()
 
-    # Devuelve la lista de juegos recomendados
-    recommended_games_list = recommended_games['title'].tolist() 
-    
-    return recommended_games_list
+    return recommended_game_names
 
-@app.get("/recommend/{product_id}", response_model=List[str])
-def get_recommendations(product_id: int):
-    recommendations = recomendacion_juego(product_id)
-    return recommendations
-
-
-
+@app.get("/similar_games/{item_id}", response_model=List[str])
+async def get_similar_games(item_id: int):
+    recommended_games = recomendacion_juego3(item_id)
+    return recommended_games
