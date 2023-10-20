@@ -1,3 +1,6 @@
+![26TZ62LNNNHFLM5YYVOXEHM7HQ](https://github.com/lucasj23/Proyecto_ML/assets/131183621/43b0b67d-eb84-4eb3-9c0c-e17919c1b83f)
+
+
 # Proyecto de Recomendación de Videojuegos - Machine Learning Operations (MLOps)
 
 Nos encontramos ubicados hipoteticamente en el rol de un MLOps Engineer en un desafío emocionante, relacionado con la creación de un sistema de recomendación de videojuegos en Steam, una plataforma multinacional de videojuegos.
