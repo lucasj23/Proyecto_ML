@@ -11,9 +11,9 @@ Nos encontramos ubicados hipoteticamente en el rol de un MLOps Engineer en un de
 Tenemos ya un modelo de recomendación de videojuegos que muestra buenas métricas, pero ahora se plantea el desafío de llevarlo al mundo real. El ciclo de vida de un proyecto de Machine Learning debe abarcar desde la recolección y el tratamiento de datos hasta el entrenamiento y el mantenimiento del modelo a medida que llegan nuevos datos.
 
 ### Rol a Desarrollar
-Estamos trabajando como Data Scientist en Steam, y nos solicitaron la tarea de crear un sistema de recomendación de videojuegos para usuarios. Sin embargo, existen datos que presentan desafíos significativos, como datos anidados y falta de procesos automatizados para la actualización de productos. La misión es abordar estos desafíos y desarrollar un MVP (Producto Mínimo Viable) para resolver el problema.
+Estamos situados -hipoteticamente- en un rol de Data Scientist, y nos solicitaron la tarea de crear un sistema de recomendación de videojuegos para usuarios. Sin embargo, existen datos que presentan desafíos significativos, como datos anidados y falta de procesos automatizados para la actualización de productos. La misión es abordar estos desafíos y desarrollar un MVP (Producto Mínimo Viable) para resolver el problema.
 
-## Propuesta de Trabajo (Requerimientos de Aprobación)
+## Propuesta de Trabajo
 
 ### Transformaciones de Datos
 En este MVP, no se requieren necesariamente transformaciones de datos específicas, aunque se permite realizarlas si se identifica una justificación adecuada. Se permite eliminar columnas innecesarias para optimizar el rendimiento de la API y el entrenamiento del modelo.
